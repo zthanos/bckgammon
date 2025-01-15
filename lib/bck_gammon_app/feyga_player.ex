@@ -1,4 +1,85 @@
-# defmodule BckGammonApp.FeygaPlayer do
+defmodule BckGammonApp.FeygaPlayer do
+  alias BckGammonApp.Board
+  alias BckGammonApp.{Player, Feyga}
+
+  def play_turn(board, player) do
+    roll = Feyga.roll_dice()
+    # state = Player.get_state(player) |> dbg()
+
+    play(board, player.state, player, roll)
+  end
+
+  defp play(board, :moving, player, roll) do
+    a = Board.board_to_matrix(board, :black, :yellow)
+    strategy = BckGammonApp.Strategy.determine_strategy(board, player.color)
+    IO.inspect(a)
+    case strategy do
+      {:try_fill_second_stage, analysis} -> occupy_last_empty(analysis, 1, roll, player.color)
+      :break_opponent_block -> occupy_first_empty(board, 2, roll, player.color)
+      _ -> strategy
+    end
+  end
+
+  defp occupy_last_empty(strategy, _positions, _roll, _player_color) do
+    # candidate_positions =
+    #   Enum.filter(positions, fn %{count: count, color: color} ->
+    #     color == player_color and count > 2 and section_of_position(from_section, positions)
+    #   end)
+
+    # Enum.map(candidate_positions, fn %{index: from_index} ->
+    #   to_index = from_index + roll
+    #   target_position = find_position_by_index(positions, to_index)
+
+    #   case target_position do
+    #     nil ->
+    #       {:error, :invalid_target_position}
+
+    #     %{count: _} ->
+    #       move_result = perform_move(positions, from_index, to_index, player_color)
+    #       move_result
+    #   end
+    # end)
+
+    IO.inspect(strategy)
+    IO.puts("Here we go")
+    {:ok}
+  end
+
+  def find_position_by_index(positions, index) do
+    Enum.find(positions, fn %{index: idx} -> idx == index end)
+  end
+
+
+  def perform_move(positions, from_index, to_index) do
+    updated_positions =
+      Enum.map(positions, fn
+        %{index: ^from_index, count: count} = pos ->
+          %{pos | count: count - 1}
+
+        %{index: ^to_index, count: count} = pos ->
+          %{pos | count: count + 1}
+
+        pos ->
+          pos
+      end)
+
+    {:ok, updated_positions}
+  end
+
+  defp occupy_first_empty(_board, _section, _roll, _player_color) do
+    {:ok}
+  end
+
+  # defp play(_board, :revoking, _player, _roll) do
+  #   {:ok}
+  # end
+
+  # defp play(_board, :win, _player, _roll) do
+  #   {:ok}
+
+  # end
+end
+
 #   alias BckGammonApp.Feyga
 #   alias BckGammonApp.Board
 #   alias BckGammonApp.Player
