@@ -7,14 +7,46 @@ defmodule BckGammonApp.GameTest do
   test "play game" do
     player1 = Player.init(:black, :forward)
     player2 = Player.init(:yellow, :backward)
-    game = Feyga.init_game(player1, player2)
+    game = Feyga.init_game(player1, player2, true)
     players = game.players
+
+
+    Enum.reduce_while(1..5000, game, fn _, acc_game ->
+      case Feyga.play_turn(acc_game, acc_game.active_player) do
+        {:ok, updated_game} ->
+          analysis = BckGammonApp.BoardAnalyzer.analyze_board(updated_game)
+          # IO.puts(inspect(Board.print_board(updated_game.board)))
+          updated_game.board |> dbg()
+          # IO.puts(inspect(analysis))
+          analysis |> dbg()
+          if Enum.all?(analysis.state, fn %BckGammonApp.State{state: state} -> state == :collecting end) do
+            {:halt, updated_game}  # Σταματάμε όταν όλοι οι παίκτες είναι στο collecting state
+          else
+            {:cont, updated_game}  # Συνεχίζουμε το παιχνίδι
+          end
+
+        {:error, reason} ->
+          IO.puts("Error: #{inspect(reason)}")
+          {:cont, acc_game}
+      end
+    end)
     # analyze_black = BckGammonApp.BoardAnalyzer.analyze_board(game)
     # analyze_black |> dbg()
-    p1_turn = Feyga.play_turn(game, player1)
-    p1_turn |> dbg()
-    # p1_turn = Feyga.play_turn(p1_turn, player2)
-    # p1_turn |> dbg()
+    # 1..15
+    # |> Enum.reduce(game, fn _, acc_game ->
+    #   case Feyga.play_turn(acc_game, acc_game.active_player) do
+    #     {:ok, updated_game} ->
+    #       updated_game |> dbg()
+    #       updated_game
+
+    #     {:error, reason} ->
+    #       IO.puts("Error: #{inspect(reason)}")
+    #       acc_game
+    #   end
+    # end)
+
+
+
     # # Εκτέλεση 10 γύρων για κάθε παίκτη
     # 1..15
     # |> Enum.reduce(game, fn _, game ->

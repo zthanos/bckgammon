@@ -47,6 +47,10 @@ defmodule BckGammonApp.Player do
     player.rolls
   end
 
+  def is_same_player?(%Player{color: color1}, %Player{color: color2}) do
+    color1 == color2
+  end
+
   def add_checker_on_hand(player) do
     %{player | checkers_on_hand: [player.color | player.checkers_on_hand]} |> dbg()
   end
